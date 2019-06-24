@@ -1,14 +1,16 @@
-import React, {useState} from 'react'
+import {useState} from 'react'
 
 export interface FormHookOutput<T>{
   clear: () => void
   controlledInput: (field: keyof T) => ControlledInput<T>
   data: T
-  Form: React.FunctionComponent
-  Input: React.FunctionComponent<{field: keyof T}>
   onSubmit: (cb: (data: T) => void) => void
   validate: (field: keyof T, validator: (value: any) => boolean) => void
-  valid: () => boolean
+  valid: (field?: keyof T) => boolean,
+  bind: (field: keyof T) => ControlledInput<T>["bind"]
+  formBind: () => {
+    onSubmit: (e: any) => void
+  }
 }
 
 export interface ControlledInput<T>{
@@ -19,6 +21,7 @@ export interface ControlledInput<T>{
   bind: {
     value: any
     onChange: (e: any) => void
+    name: keyof T
   }
 }
 
@@ -37,7 +40,7 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
   })
 
   const clear = () => {
-    setData(initialData)
+    setData(initialData as any)
   }
 
   const controlledInput = (field: keyof T): ControlledInput<T> => {
@@ -45,7 +48,7 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
       const tempData = Object.assign({}, data)
       tempData[field] = newValue
 
-      setData(tempData)
+      setData(tempData as any)
     }
 
     const valid = () => validators[field as string](data[field])
@@ -57,24 +60,10 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
       valid,
       bind: {
         value: data[field],
+        name: field,
         onChange: (e) => update((e.target as any).value)
       }
     }
-  }
-
-  const Form: React.FunctionComponent = ({children}) => {
-    return <form onSubmit={(e) => {
-      e.preventDefault()
-      onSubmitCallback(data)
-    }}>
-      {children}
-    </form>
-  }
-
-  const Input: React.FunctionComponent<{field: keyof T}> = ({field}) => {
-    const {bind} = controlledInput(field)
-
-    return <input {...bind} name={field as string} />
   }
 
   const onSubmit = (cb: (data: T) => void) => {
@@ -85,22 +74,39 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
     validators[field as string] = validator
   }
 
-  const valid = () => {
+  const valid = (field?: keyof T) => {
+    if(field){
+      return validators[(field as string)](data[field])
+    }
+
     return Object.keys(data).map((key) => {
-      return validators[key](data[key])
+      return validators[key]((data as any)[key] as any)
     }).reduce((acc, result) => {
       return acc && result
     })
+  }
+
+  const bind = (field: keyof T) => {
+    return controlledInput(field).bind
+  }
+
+  const formBind = () => {
+    return {
+      onSubmit: (e: any) => {
+        e.preventDefault()
+        onSubmitCallback(data)
+      }
+    }
   }
 
   return {
     clear,
     controlledInput,
     data,
-    Form,
-    Input,
     onSubmit,
     validate,
-    valid
+    valid,
+    bind,
+    formBind
   }
 }

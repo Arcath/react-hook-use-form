@@ -4,14 +4,14 @@ import Adapter from 'enzyme-adapter-react-16'
 
 configure({ adapter: new Adapter() })
 
-import {useForm, ControlledInput} from './react-hook-use-form'
+import {useForm} from './react-hook-use-form'
 
 describe('React Form Hooks', () => {
   it('should function as a controlled form', () => {
     let pass = false
 
     const Component: React.FunctionComponent = () => {
-      const {Form, Input, onSubmit} = useForm({
+      const {bind, formBind, onSubmit} = useForm({
         name: ''
       })
 
@@ -20,9 +20,9 @@ describe('React Form Hooks', () => {
         pass = true
       })
 
-      return <Form>
-        <Input field="name" />
-      </Form>
+      return <form {...formBind()}>
+        <input {...bind('name')}/>
+      </form>
     }
 
     const wrapper = mount(<Component />)
@@ -43,7 +43,7 @@ describe('React Form Hooks', () => {
     let pass = false
 
     const Component = () => {
-      const {Form, Input, onSubmit, validate, valid} = useForm({
+      const {formBind, bind, onSubmit, validate, valid} = useForm({
         name: '',
         email: ''
       })
@@ -58,11 +58,11 @@ describe('React Form Hooks', () => {
         expect(data.email).toBe('pass@test.com')
       })
 
-      return <Form>
-        <Input field="name" />
-        <Input field="email" />
+      return <form {...formBind()}>
+        <input {...bind('name')} />
+        <input {...bind('email')} />
         <b>{valid() ? 'valid' : 'invalid'}</b>
-      </Form>
+      </form>
     }
 
     const wrapper = mount(<Component />)
@@ -83,34 +83,5 @@ describe('React Form Hooks', () => {
     form.simulate('submit', {preventDefault: () => {}})
     
     expect(pass).toBe(true)
-  })
-
-  it('should be able to work with another hook', () => {
-    function useFormComponents<T>(controlledInput: (field: keyof T) => ControlledInput<T>){
-      const Input: React.FunctionComponent<{f: keyof T}> = ({f}) => {
-        const {bind} = controlledInput(f)
-
-        return <input {...bind} />
-      }
-
-      return {
-        Input
-      }
-    }
-
-    const Component = () => {
-      const {Form, controlledInput} = useForm({name: ''})
-      const {Input} = useFormComponents(controlledInput)
-
-      return <Form>
-        <Input f="name" />
-      </Form>
-    }
-
-    const wrapper = mount(<Component />)
-
-    const input = wrapper.find('input')
-
-    expect(input.length).toBe(1)
   })
 })
