@@ -11,6 +11,7 @@ export interface FormHookOutput<T>{
   formBind: () => {
     onSubmit: (e: any) => void
   }
+  set: (data: T) => void
 }
 
 export interface ControlledInput<T>{
@@ -99,6 +100,10 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
     }
   }
 
+  const set = (data: T) => {
+    setData(data)
+  }
+
   return {
     clear,
     controlledInput,
@@ -107,6 +112,7 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
     validate,
     valid,
     bind,
-    formBind
+    formBind,
+    set
   }
 }
