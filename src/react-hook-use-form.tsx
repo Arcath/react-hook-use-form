@@ -2,7 +2,7 @@ import {useState} from 'react'
 
 export interface FormHookOutput<T>{
   clear: () => void
-  controlledInput: (field: keyof T) => ControlledInput<T>
+  controlledInput: <K extends keyof T>(field: K) => ControlledInput<T, K>
   data: T
   onSubmit: (cb: (data: T) => void) => void
   validate: (field: keyof T, validator: (value: any) => boolean) => void
@@ -14,15 +14,15 @@ export interface FormHookOutput<T>{
   set: (data: T) => void
 }
 
-export interface ControlledInput<T>{
-  field: keyof T
-  value: any
-  update: (newValue: any) => void
+export interface ControlledInput<T, K extends keyof T = keyof T>{
+  field: K
+  value: T[K]
+  update: (newValue: T[K]) => void
   valid: () => boolean,
   bind: {
-    value: any
+    value: T[K]
     onChange: (e: any) => void
-    name: keyof T
+    name: K
   }
 }
 
@@ -41,10 +41,10 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
   })
 
   const clear = () => {
-    setData(initialData as any)
+    setData(initialData)
   }
 
-  const controlledInput = (field: keyof T): ControlledInput<T> => {
+  const controlledInput = <K extends keyof T>(field: K): ControlledInput<T, K> => {
     const update = (newValue: any) => {
       const tempData = Object.assign({}, data)
       tempData[field] = newValue
@@ -80,11 +80,9 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
       return validators[(field as string)](data[field])
     }
 
-    return Object.keys(data).map((key) => {
-      return validators[key]((data as any)[key] as any)
-    }).reduce((acc, result) => {
-      return acc && result
-    })
+    return Object.keys(data).reduce((acc, key) => {
+      return acc && validators[key]((data as any)[key] as any)
+    }, true)
   }
 
   const bind = (field: keyof T) => {
