@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useReducer} from 'react'
 
 export interface FormHookOutput<T>{
   /** Reset the form to its initial values */
@@ -79,8 +79,19 @@ export interface ControlledInput<T, K extends keyof T = keyof T>{
   }
 }
 
+interface DispatchAction<T, K extends keyof T = keyof T>{
+  field: K
+  value: T[K]
+}
+
 export function useForm<T>(initialData: T): FormHookOutput<T>{
-  const [data, setData] = useState(initialData)
+  const [data, dispatchData] = useReducer<React.Reducer<T, DispatchAction<T>>>((state, action) => {
+    let newState = Object.assign({}, state)
+
+    newState[action.field] = action.value
+
+    return newState
+  }, initialData)
 
   /** The default onSubmit, this is so we can overwrite it when the user calls `onSubmit` */
   let onSubmitCallback = (data: T) => {
@@ -94,15 +105,14 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
   })
 
   const clear = () => {
-    setData(initialData)
+    Object.keys(initialData).forEach((field) => {
+      dispatchData({field: (field as keyof T), value: initialData[field]})
+    })
   }
 
   const controlledInput = <K extends keyof T>(field: K): ControlledInput<T, K> => {
-    const update = (newValue: T[K]) => {
-      const tempData = Object.assign({}, data)
-      tempData[field] = newValue
-
-      setData(tempData)
+    const update = (value: T[K]) => {
+      dispatchData({field, value})
     }
 
     const valid = () => validators[field as string](data[field])
@@ -152,7 +162,9 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
   }
 
   const set = (data: T) => {
-    setData(data)
+    Object.keys(data).forEach((field) => {
+      dispatchData({field: (field as keyof T), value: data[field]})
+    })
   }
 
   return {
