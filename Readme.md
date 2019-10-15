@@ -38,9 +38,11 @@ const NewsletterSignUp: React.FunctionComponent = () => {
 
 |property|type|value|
 |:-------|:----|:----|
+|bind|`(field: keyof T) => {value, onChange, name}`|Used to bind to a single field.|
 |clear|`() => void`|Function that sets the form back to its initial value.|
 |controlledInput|`(fieldName: keyof T) => ControlledInput`|Function that is used to create input fields (See Creating your own input).|
 |data|`T`|The current state of the form.|
+|formBind|`() => {onSumbit}`|Used to bind a forms submit action to `useForm`|
 |onSubmit|`(handler: (data: T) => void) => void`|A function which takes a callback to be used when the form is submitted.|
 |validate|`(field: keyof T, validator: (value: any) => boolean) => void`|A function that takes the field name and validation function as arguments.|
 |valid|`(field?: keyof T) => boolean`|A function that checks the validity of one field or the whole form and returns a boolean value.|
@@ -68,3 +70,18 @@ const NewsletterSignUp: React.FunctionComponent = () => {
 }
 ```
 
+## Creating your own input
+
+Sometimes simply using `bind` wont work as your not using and `input` and you want to have a custom input.
+
+`useForm` returns a function of `controlledInput` which gives more control over a single field.
+
+`controlledInput` returns the following:
+
+|property|type|value|
+|:-------|:----|:----|
+|field|`keyof T`|The current field|
+|value|`T[field]`|The current value (connected to state)|
+|update|`(newValue: T[field]) => void`|Change the value to the supplied value|
+|valid|`() => boolean`|Returns a boolean value for the fields current validity|
+|bind|`{value, onChange, name}`|The same as if you had called `bind(field)` directly from `useForm`|
