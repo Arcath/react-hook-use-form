@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import {configure, mount} from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 
@@ -145,5 +145,40 @@ describe('React Form Hooks', () => {
     expect(input2.length).toBe(1)
 
     expect(input2.html()).toBe('<input name="name" value="">')
+  })
+
+  it('should supply set etc.. in a stable way', () => {
+    const TEST_STRING = "test"
+
+    let runCount = 0
+
+    const Component: React.FunctionComponent = () => {
+      const {set, formBind, onSubmit} = useForm({
+        title: ''
+      })
+
+      useEffect(() => {
+        set({
+          title: TEST_STRING
+        })
+
+        runCount++
+      }, [set])
+
+      onSubmit(({title}) => {
+        expect(title).toBe(TEST_STRING)
+      })
+
+      return <>
+        <form {...formBind()} />
+      </>
+    }
+
+    const wrapper = mount(<Component />)
+
+    const form = wrapper.find('form')
+    form.simulate('submit', {preventDefault: () => {}})
+
+    expect(runCount).toBe(1)
   })
 })
