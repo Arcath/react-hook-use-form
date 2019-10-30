@@ -25,7 +25,7 @@ export interface FormHookOutput<T>{
    * @param field The field to validate.
    * @param validator The function to validate the field, should return a boolean for valid status.
    */
-  validate: <K extends keyof T>(field: K, validator: (value: T[K]) => boolean) => void
+  validate: <K extends keyof T>(field: K, validator: (value: T[K], data: T) => boolean) => void
 
   /**
    * Check the validation status of the form or field.
@@ -111,7 +111,7 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
     // NOOP
   }
 
-  let validators: {[field: string]: (value: any) => boolean} = {}
+  let validators: {[field: string]: (value: any, data: T) => boolean} = {}
 
   Object.keys(data).forEach((key) => {
     validators[key] = () => true
@@ -122,7 +122,7 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
       dispatchData({field, value})
     }
 
-    const valid = () => validators[field as string](data[field])
+    const valid = () => validators[field as string](data[field], data)
 
     return {
       field,
@@ -141,17 +141,17 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
     onSubmitCallback = cb
   }
 
-  const validate = (field: keyof T, validator: (data: any) => boolean) => {
+  const validate = (field: keyof T, validator: (value: any, data: T) => boolean) => {
     validators[field as string] = validator
   }
 
   const valid = (field?: keyof T) => {
     if(field){
-      return validators[(field as string)](data[field])
+      return validators[(field as string)](data[field], data)
     }
 
     return Object.keys(data).reduce((acc, key) => {
-      return acc && validators[key]((data as any)[key] as any)
+      return acc && validators[key]((data as any)[key] as any, data)
     }, true)
   }
 
