@@ -46,6 +46,7 @@ const NewsletterSignUp: React.FunctionComponent = () => {
 |onSubmit|`(handler: (data: T) => void) => void`|A function which takes a callback to be used when the form is submitted.|
 |validate|`(field: keyof T, validator: (value: any) => boolean) => void`|A function that takes the field name and validation function as arguments.|
 |valid|`(field?: keyof T) => boolean`|A function that checks the validity of one field or the whole form and returns a boolean value.|
+|set|`(data: T) => void`|Function to set the `data` to a given value. Useful if you want to use one form to edit multiple entries.|
 
 ### Validation
 
