@@ -76,6 +76,7 @@ export interface ControlledInput<T, K extends keyof T = keyof T>{
     value: T[K]
     onChange: (e: any) => void
     name: K
+    'aria-label': string
   }
 }
 
@@ -84,7 +85,11 @@ interface DispatchAction<T, K extends keyof T = keyof T>{
   value: T[K]
 }
 
-export function useForm<T>(initialData: T): FormHookOutput<T>{
+export interface UseFormOptions{
+  ariaModel: string
+}
+
+export function useForm<T>(initialData: T, options?: UseFormOptions): FormHookOutput<T>{
   const [data, dispatchData] = useReducer<React.Reducer<T, DispatchAction<T>>>((state, action) => {
     let newState = Object.assign({}, state)
 
@@ -124,6 +129,8 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
 
     const valid = () => validators[field as string](data[field], data)
 
+    const ariaLabel = options && options.ariaModel ? `${options.ariaModel}-${field}` : `${field}`
+
     return {
       field,
       value: data[field],
@@ -132,7 +139,8 @@ export function useForm<T>(initialData: T): FormHookOutput<T>{
       bind: {
         value: data[field],
         name: field,
-        onChange: (e) => update((e.target as any).value)
+        onChange: (e) => update((e.target as any).value),
+        'aria-label': ariaLabel
       }
     }
   }

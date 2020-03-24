@@ -144,7 +144,7 @@ describe('React Form Hooks', () => {
 
     expect(input2.length).toBe(1)
 
-    expect(input2.html()).toBe('<input name="name" value="">')
+    expect(input2.html()).toBe('<input name="name" aria-label="name" value="">')
   })
 
   it('should supply set etc.. in a stable way', () => {
@@ -180,5 +180,34 @@ describe('React Form Hooks', () => {
     form.simulate('submit', {preventDefault: () => {}})
 
     expect(runCount).toBe(1)
+  })
+
+  it('should support `ariaModel`', () => {
+    const Component: React.FunctionComponent = () => {
+      const {bind, formBind, onSubmit, controlledInput} = useForm({
+        name: '',
+        age: 10
+      }, {ariaModel: 'person'})
+
+      onSubmit((data) => {
+        expect(data.name).toBe('test')
+        expect(data.age).toBe(10)
+      })
+
+      // This is to test Typescript.
+      // `value` should have the type number
+      const {value, update} = controlledInput('age')
+
+      return <form {...formBind()}>
+        <input {...bind('name')} id="name"/>
+        <input value={value} onChange={(e) => {update(parseInt(e.target.value))}} />
+      </form>
+    }
+
+    const wrapper = mount(<Component />)
+
+    const input = wrapper.find('input#name')
+
+    expect(input.html()).toBe('<input name="name" aria-label="person-name" id="name" value="">')
   })
 })
