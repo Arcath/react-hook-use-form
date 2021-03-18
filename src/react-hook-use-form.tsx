@@ -55,7 +55,7 @@ export interface FormHookOutput<T>{
    * 
    * @param data The new data object to use.
    */
-  set: (data: T) => void
+  set: (data: Partial<T>) => void
 }
 
 export interface ControlledInput<T, K extends keyof T = keyof T>{
@@ -99,7 +99,7 @@ export function useForm<T>(initialData: T, options?: UseFormOptions): FormHookOu
   }, initialData)
 
   const staticFunctions = useRef({
-    set: (data: T) => {
+    set: (data: Partial<T>) => {
       Object.keys(data).forEach((field) => {
         dispatchData({field: (field as keyof T), value: data[field]})
       })

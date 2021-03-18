@@ -106,11 +106,13 @@ describe('React Form Hooks', () => {
 
     const Component: React.FunctionComponent = () => {
       const {bind, formBind, onSubmit, set, clear} = useForm({
-        name: ''
+        name: '',
+        age: 10
       })
 
       onSubmit((data) => {
         expect(data.name).toBe('set')
+        expect(data.age).toBe(10)
         pass = true
         clear()
       })
