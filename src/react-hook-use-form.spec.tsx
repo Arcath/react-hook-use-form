@@ -1,215 +1,300 @@
-import React, {useEffect} from 'react'
-import {configure, mount} from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16'
+import React, { useEffect } from "react";
+import { fireEvent, render } from "@testing-library/react";
 
-configure({ adapter: new Adapter() })
+import { useForm } from "./react-hook-use-form";
 
-import {useForm} from './react-hook-use-form'
-
-describe('React Form Hooks', () => {
-  it('should function as a controlled form', () => {
-    let pass = false
+describe("React Form Hooks", () => {
+  it("should function as a controlled form", () => {
+    let pass = false;
 
     const Component: React.FunctionComponent = () => {
-      const {bind, formBind, onSubmit, controlledInput} = useForm({
-        name: '',
-        age: 10
-      })
+      const { bind, formBind, onSubmit, controlledInput } = useForm({
+        name: "",
+        age: 10,
+      });
 
       onSubmit((data) => {
-        expect(data.name).toBe('test')
-        expect(data.age).toBe(10)
-        pass = true
-      })
+        expect(data.name).toBe("test");
+        expect(data.age).toBe(10);
+        pass = true;
+      });
 
       // This is to test Typescript.
       // `value` should have the type number
-      const {value, update} = controlledInput('age')
+      const { value, update } = controlledInput("age");
 
-      return <form {...formBind()}>
-        <input {...bind('name')} id="name"/>
-        <input value={value} onChange={(e) => {update(parseInt(e.target.value))}} />
-      </form>
-    }
+      return (
+        <form {...formBind()}>
+          <input {...bind("name")} id="name" />
+          <input
+            value={value}
+            onChange={(e) => {
+              update(parseInt(e.target.value));
+            }}
+          />
+          <input type="submit" value="submit" />
+        </form>
+      );
+    };
 
-    const wrapper = mount(<Component />)
+    const { container, getByLabelText, getByText } = render(<Component />);
 
-    const input = wrapper.find('input#name')
+    expect(container).toMatchInlineSnapshot(`
+      <div>
+        <form>
+          <input
+            aria-label="name"
+            id="name"
+            name="name"
+            value=""
+          />
+          <input
+            value="10"
+          />
+          <input
+            type="submit"
+            value="submit"
+          />
+        </form>
+      </div>
+    `);
 
-    expect(input.length).toBe(1)
-    
-    input.simulate('change', {target: {value: 'test'}})
+    const input = getByLabelText("name");
 
-    const form = wrapper.find('form')
-    form.simulate('submit', {preventDefault: () => {}})
+    fireEvent.change(input, { target: { value: "test" } });
 
-    expect(pass).toBe(true)
-  })
+    const submitButton = getByText("submit");
 
-  it('should validate input', () => {
-    let pass = false
+    fireEvent.click(submitButton);
+
+    expect(pass).toBe(true);
+  });
+
+  it("should validate input", () => {
+    //let pass = false
 
     const Component = () => {
-      const {formBind, bind, onSubmit, validate, valid} = useForm({
-        name: '',
-        email: ''
-      })
+      const { formBind, bind, validate, valid } = useForm({
+        name: "",
+        email: "",
+      });
 
-      validate('name', (value) => {
-        pass = true
-        return value === 'pass'
-      })
+      validate("name", (value) => {
+        //pass = true
+        return value === "pass";
+      });
 
-      validate('email', () => {
-        return true
-      })
+      validate("email", () => {
+        return true;
+      });
 
-      onSubmit((data) => {
-        expect(data.name).toBe('pass')
-        expect(data.email).toBe('pass@test.com')
-      })
+      return (
+        <form {...formBind()}>
+          <input {...bind("name")} />
+          <input {...bind("email")} />
+          <b>{valid() ? "valid" : "invalid"}</b>
+          <i>{valid("email") ? "valid" : "invalid"}</i>
+        </form>
+      );
+    };
 
-      return <form {...formBind()}>
-        <input {...bind('name')} />
-        <input {...bind('email')} />
-        <b>{valid() ? 'valid' : 'invalid'}</b>
-        <i>{valid('email') ? 'valid' : 'invalid'}</i>
-      </form>
-    }
+    const { container, getByLabelText } = render(<Component />);
 
-    const wrapper = mount(<Component />)
+    expect(container).toMatchInlineSnapshot(`
+      <div>
+        <form>
+          <input
+            aria-label="name"
+            name="name"
+            value=""
+          />
+          <input
+            aria-label="email"
+            name="email"
+            value=""
+          />
+          <b>
+            invalid
+          </b>
+          <i>
+            valid
+          </i>
+        </form>
+      </div>
+    `);
 
-    const invalid = wrapper.find('b')
-    expect(invalid.html()).toBe('<b>invalid</b>')
+    const nameInput = getByLabelText("name");
+    //const emailInput = getByLabelText('email')
 
-    const name = wrapper.find('input[name="name"]')
-    name.simulate('change', {target: {value: 'pass'}})
+    fireEvent.change(nameInput, { target: { value: "pass" } });
 
-    const valid = wrapper.find('b')
-    expect(valid.html()).toBe('<b>valid</b>')
+    expect(container).toMatchInlineSnapshot(`
+      <div>
+        <form>
+          <input
+            aria-label="name"
+            name="name"
+            value="pass"
+          />
+          <input
+            aria-label="email"
+            name="email"
+            value=""
+          />
+          <b>
+            valid
+          </b>
+          <i>
+            valid
+          </i>
+        </form>
+      </div>
+    `);
+  });
 
-    const emailValid = wrapper.find('i')
-    expect(emailValid.html()).toBe('<i>valid</i>')
-    
-    const email = wrapper.find('input[name="email"]')
-    email.simulate('change', {target: {value: 'pass@test.com'}})
-
-    const form = wrapper.find('form')
-    form.simulate('submit', {preventDefault: () => {}})
-    
-    expect(pass).toBe(true)
-  })
-
-  it('should function support set and a clear', () => {
-    let pass = false
-    const btnSet = "Set"
-
-    const Component: React.FunctionComponent = () => {
-      const {bind, formBind, onSubmit, set, clear} = useForm({
-        name: '',
-        age: 10
-      })
-
-      onSubmit((data) => {
-        expect(data.name).toBe('set')
-        expect(data.age).toBe(10)
-        pass = true
-        clear()
-      })
-
-      return <form {...formBind()}>
-        <input {...bind('name')}/>
-        <button onClick={() => {
-          set({name: 'set'})
-        }}>{btnSet}</button>
-      </form>
-    }
-
-    const wrapper = mount(<Component />)
-
-    const input = wrapper.find('input')
-
-    expect(input.length).toBe(1)
-    
-    input.simulate('change', {target: {value: 'test'}})
-
-    const button = wrapper.find('button')
-
-    button.simulate('click')
-
-    const form = wrapper.find('form')
-    form.simulate('submit', {preventDefault: () => {}})
-
-    expect(pass).toBe(true)
-
-    const input2 = wrapper.find('input')
-
-    expect(input2.length).toBe(1)
-
-    expect(input2.html()).toBe('<input name="name" aria-label="name" value="">')
-  })
-
-  it('should supply set etc.. in a stable way', () => {
-    const TEST_STRING = "test"
-
-    let runCount = 0
+  it("should function support set and a clear", () => {
+    let pass = false;
+    const btnSet = "Set";
 
     const Component: React.FunctionComponent = () => {
-      const {set, formBind, onSubmit} = useForm({
-        title: ''
-      })
+      const { bind, formBind, onSubmit, set, clear } = useForm({
+        name: "",
+        age: 10,
+      });
+
+      onSubmit((data) => {
+        expect(data.name).toBe("set");
+        expect(data.age).toBe(10);
+        pass = true;
+        clear();
+      });
+
+      return (
+        <form {...formBind()}>
+          <input {...bind("name")} />
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              set({ name: "set" });
+            }}
+          >
+            {btnSet}
+          </button>
+          <input type="submit" value="submit" />
+        </form>
+      );
+    };
+
+    const { container, getByText, getByLabelText } = render(<Component />);
+
+    const setButton = getByText(btnSet);
+    const nameInput = getByLabelText("name");
+    const submitButton = getByText("submit");
+
+    fireEvent.change(nameInput, { target: { value: "new name" } });
+
+    expect(container).toMatchInlineSnapshot(`
+      <div>
+        <form>
+          <input
+            aria-label="name"
+            name="name"
+            value="new name"
+          />
+          <button>
+            Set
+          </button>
+          <input
+            type="submit"
+            value="submit"
+          />
+        </form>
+      </div>
+    `);
+
+    fireEvent.click(setButton);
+
+    fireEvent.click(submitButton);
+
+    expect(pass).toBe(true);
+  });
+
+  it("should supply set etc.. in a stable way", () => {
+    const TEST_STRING = "test";
+
+    let runCount = 0;
+
+    const Component: React.FunctionComponent = () => {
+      const { set, formBind, onSubmit } = useForm({
+        title: "",
+      });
 
       useEffect(() => {
         set({
-          title: TEST_STRING
-        })
+          title: TEST_STRING,
+        });
 
-        runCount++
-      }, [set])
+        runCount++;
+      }, [set]);
 
-      onSubmit(({title}) => {
-        expect(title).toBe(TEST_STRING)
-      })
+      onSubmit(({ title }) => {
+        expect(title).toBe(TEST_STRING);
+      });
 
-      return <>
-        <form {...formBind()} />
-      </>
-    }
+      return (
+        <>
+          <form {...formBind()}>
+            <input type="submit" value="submit" />
+          </form>
+        </>
+      );
+    };
 
-    const wrapper = mount(<Component />)
+    const { getByText } = render(<Component />);
 
-    const form = wrapper.find('form')
-    form.simulate('submit', {preventDefault: () => {}})
+    const submitButton = getByText("submit");
 
-    expect(runCount).toBe(1)
-  })
+    fireEvent.click(submitButton);
 
-  it('should support `ariaModel`', () => {
+    expect(runCount).toBe(1);
+  });
+
+  it("should support `ariaModel`", () => {
     const Component: React.FunctionComponent = () => {
-      const {bind, formBind, onSubmit, controlledInput} = useForm({
-        name: '',
-        age: 10
-      }, {ariaModel: 'person'})
+      const { bind, formBind, onSubmit, controlledInput } = useForm(
+        {
+          name: "",
+          age: 10,
+        },
+        { ariaModel: "person" }
+      );
 
       onSubmit((data) => {
-        expect(data.name).toBe('test')
-        expect(data.age).toBe(10)
-      })
+        expect(data.name).toBe("test");
+        expect(data.age).toBe(10);
+      });
 
       // This is to test Typescript.
       // `value` should have the type number
-      const {value, update} = controlledInput('age')
+      const { value, update } = controlledInput("age");
 
-      return <form {...formBind()}>
-        <input {...bind('name')} id="name"/>
-        <input value={value} onChange={(e) => {update(parseInt(e.target.value))}} />
-      </form>
-    }
+      return (
+        <form {...formBind()}>
+          <input {...bind("name")} id="name" />
+          <input
+            value={value}
+            onChange={(e) => {
+              update(parseInt(e.target.value));
+            }}
+          />
+        </form>
+      );
+    };
 
-    const wrapper = mount(<Component />)
+    const { getByLabelText } = render(<Component />);
 
-    const input = wrapper.find('input#name')
+    const input = getByLabelText("person-name");
 
-    expect(input.html()).toBe('<input name="name" aria-label="person-name" id="name" value="">')
-  })
-})
+    expect(input).not.toBeNull();
+  });
+});
