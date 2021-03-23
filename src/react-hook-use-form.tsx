@@ -56,6 +56,8 @@ export interface FormHookOutput<T>{
    * @param data The new data object to use.
    */
   set: (data: Partial<T>) => void
+
+  label: <K extends keyof T>(field: K) => {for: string}
 }
 
 export interface ControlledInput<T, K extends keyof T = keyof T>{
@@ -77,6 +79,7 @@ export interface ControlledInput<T, K extends keyof T = keyof T>{
     onChange: (e: any) => void
     name: K
     'aria-label': string
+    id: string
   }
 }
 
@@ -140,7 +143,8 @@ export function useForm<T>(initialData: T, options?: UseFormOptions): FormHookOu
         value: data[field],
         name: field,
         onChange: (e) => update((e.target as any).value),
-        'aria-label': ariaLabel
+        'aria-label': ariaLabel,
+        id: ariaLabel
       }
     }
   }
@@ -167,6 +171,14 @@ export function useForm<T>(initialData: T, options?: UseFormOptions): FormHookOu
     return controlledInput(field).bind
   }
 
+  const label = <K extends keyof T>(field: K) => {
+    const id = options && options.ariaModel ? `${options.ariaModel}-${field}` : `${field}`
+    
+    return {
+      for: id
+    }
+  }
+
   const formBind = () => {
     return {
       onSubmit: (e: any) => {
@@ -185,6 +197,7 @@ export function useForm<T>(initialData: T, options?: UseFormOptions): FormHookOu
     valid,
     bind,
     formBind,
-    set: staticFunctions.current.set
+    set: staticFunctions.current.set,
+    label
   }
 }

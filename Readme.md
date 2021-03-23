@@ -47,6 +47,7 @@ const NewsletterSignUp: React.FunctionComponent = () => {
 |validate|`(field: keyof T, validator: (value: any) => boolean) => void`|A function that takes the field name and validation function as arguments.|
 |valid|`(field?: keyof T) => boolean`|A function that checks the validity of one field or the whole form and returns a boolean value.|
 |set|`(data: T) => void`|Function to set the `data` to a given value. Useful if you want to use one form to edit multiple entries.|
+|label|`(field: keyof T) => {for}|Returns the fields label `for`.|
 
 ### Validation
 
@@ -86,3 +87,4 @@ Sometimes simply using `bind` wont work as your not using and `input` and you wa
 |update|`(newValue: T[field]) => void`|Change the value to the supplied value|
 |valid|`() => boolean`|Returns a boolean value for the fields current validity|
 |bind|`{value, onChange, name}`|The same as if you had called `bind(field)` directly from `useForm`|
+|id|`string`|The id of the input.|

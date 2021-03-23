@@ -105,11 +105,13 @@ describe("React Form Hooks", () => {
         <form>
           <input
             aria-label="name"
+            id="name"
             name="name"
             value=""
           />
           <input
             aria-label="email"
+            id="email"
             name="email"
             value=""
           />
@@ -133,11 +135,13 @@ describe("React Form Hooks", () => {
         <form>
           <input
             aria-label="name"
+            id="name"
             name="name"
             value="pass"
           />
           <input
             aria-label="email"
+            id="email"
             name="email"
             value=""
           />
@@ -198,6 +202,7 @@ describe("React Form Hooks", () => {
         <form>
           <input
             aria-label="name"
+            id="name"
             name="name"
             value="new name"
           />
@@ -261,7 +266,7 @@ describe("React Form Hooks", () => {
 
   it("should support `ariaModel`", () => {
     const Component: React.FunctionComponent = () => {
-      const { bind, formBind, onSubmit, controlledInput } = useForm(
+      const { bind, formBind, onSubmit, controlledInput, label } = useForm(
         {
           name: "",
           age: 10,
@@ -280,6 +285,7 @@ describe("React Form Hooks", () => {
 
       return (
         <form {...formBind()}>
+          <label {...label('name')}>Name:</label>
           <input {...bind("name")} id="name" />
           <input
             value={value}
