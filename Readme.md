@@ -48,6 +48,7 @@ const NewsletterSignUp: React.FunctionComponent = () => {
 |valid|`(field?: keyof T) => boolean`|A function that checks the validity of one field or the whole form and returns a boolean value.|
 |set|`(data: T) => void`|Function to set the `data` to a given value. Useful if you want to use one form to edit multiple entries.|
 |label|`(field: keyof T) => {for}|Returns the fields label `for`.|
+|changed|`(field?: keyof T) => boolean`|Has the given field, or any field changed from the intial data.|
 
 ### Validation
 

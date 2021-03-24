@@ -8,7 +8,7 @@ describe("React Form Hooks", () => {
     let pass = false;
 
     const Component: React.FunctionComponent = () => {
-      const { bind, formBind, onSubmit, controlledInput } = useForm({
+      const { bind, formBind, onSubmit, controlledInput, changed } = useForm({
         name: "",
         age: 10,
       });
@@ -16,6 +16,9 @@ describe("React Form Hooks", () => {
       onSubmit((data) => {
         expect(data.name).toBe("test");
         expect(data.age).toBe(10);
+        expect(changed('age')).toBe(false);
+        expect(changed('name')).toBe(true);
+        expect(changed()).toBe(true);
         pass = true;
       });
 
@@ -230,7 +233,7 @@ describe("React Form Hooks", () => {
     let runCount = 0;
 
     const Component: React.FunctionComponent = () => {
-      const { set, formBind, onSubmit } = useForm({
+      const { set, formBind, onSubmit, changed } = useForm({
         title: "",
       });
 
@@ -243,6 +246,7 @@ describe("React Form Hooks", () => {
       }, [set]);
 
       onSubmit(({ title }) => {
+        expect(changed('title')).toBe(true);
         expect(title).toBe(TEST_STRING);
       });
 

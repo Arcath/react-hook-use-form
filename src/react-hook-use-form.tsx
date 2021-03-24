@@ -57,7 +57,17 @@ export interface FormHookOutput<T>{
    */
   set: (data: Partial<T>) => void
 
+  /**
+   * Returns the required fields for a label.
+   */
   label: <K extends keyof T>(field: K) => {for: string}
+
+  /**
+   * Has the value changed from its original.
+   * 
+   * @param field (Optional) limit search to a single field.
+   */
+  changed: (field?: keyof T) => boolean
 }
 
 export interface ControlledInput<T, K extends keyof T = keyof T>{
@@ -94,12 +104,14 @@ export interface UseFormOptions{
 
 export function useForm<T>(initialData: T, options?: UseFormOptions): FormHookOutput<T>{
   const [data, dispatchData] = useReducer<React.Reducer<T, DispatchAction<T>>>((state, action) => {
-    let newState = Object.assign({}, state)
+    let newState = {...state}
 
     newState[action.field] = action.value
 
     return newState
   }, initialData)
+
+  const originalData = {...initialData}
 
   const staticFunctions = useRef({
     set: (data: Partial<T>) => {
@@ -188,6 +200,22 @@ export function useForm<T>(initialData: T, options?: UseFormOptions): FormHookOu
     }
   }
 
+  const changed = (field?: keyof T): boolean => {
+    if(field){
+      console.dir(originalData)
+
+      return originalData[field] !== data[field]
+    }
+
+    return Object.keys(data).reduce((changed, field) => {
+      if(changed){
+        return changed
+      }
+
+      return originalData[field] !== data[field]
+    }, false)
+  }
+
   return {
     clear: staticFunctions.current.clear,
     controlledInput,
@@ -198,6 +226,7 @@ export function useForm<T>(initialData: T, options?: UseFormOptions): FormHookOu
     bind,
     formBind,
     set: staticFunctions.current.set,
-    label
+    label,
+    changed
   }
 }
